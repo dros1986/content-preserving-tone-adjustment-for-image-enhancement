@@ -1,4 +1,4 @@
-# NTIRE2019
+# NTIRE 2019 - Image Enhancement Challenge
 
 ## Inference
 
