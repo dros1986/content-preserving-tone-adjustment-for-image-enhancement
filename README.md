@@ -6,7 +6,7 @@
 
 2 - Run the code with the command: 
 
-```python
+```sh
 python Trainer.py --json ./json/enhancement_pwise_blurred_n_10_lr_1e-4_wd_0.0.json --regen
 ```
 
