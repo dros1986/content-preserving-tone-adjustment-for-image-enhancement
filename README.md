@@ -7,7 +7,7 @@
 2 - Run the code with the command: 
 
 ```python
-python Trainer.py --json ./json/enhancement\_pwise\_blurred\_n\_10\_lr\_1e-4\_wd\_0.0.json --regen
+python Trainer.py --json ./json/enhancement_pwise_blurred_n_10_lr_1e-4_wd_0.0.json --regen
 ```
 
 3 - Run further refinement
