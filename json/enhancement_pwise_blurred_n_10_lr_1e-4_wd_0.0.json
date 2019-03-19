@@ -1,0 +1,46 @@
+{
+	"dataset":{
+		"type":"plain",
+		"params":{
+			"train":{
+				"list":"/home/flavio/datasets/challenge_image_enhancement/blurred/train_list.txt",
+				"input_dir":"/home/flavio/datasets/challenge_image_enhancement/blurred/training_data/iphone",
+				"gt_dir":"/home/flavio/datasets/challenge_image_enhancement/blurred/training_data/canon",
+				"loadsize":256,
+				"num_workers":4,
+				"batch_size":9
+			},
+			"val":{
+				"list":"/home/flavio/datasets/challenge_image_enhancement/blurred/val_list.txt",
+				"input_dir":"/home/flavio/datasets/challenge_image_enhancement/blurred/training_data/iphone",
+				"gt_dir":"/home/flavio/datasets/challenge_image_enhancement/blurred/training_data/canon",
+				"loadsize":256,
+				"num_workers":4,
+				"batch_size":9
+			},
+			"regen":{
+				"input_dir":"/home/flavio/datasets/challenge_image_enhancement/test_data_iphone",
+				"num_workers":4,
+				"batch_size":1
+			}
+		}
+	},
+	"generator":{
+		"type":"piecewise",
+		"params":{
+			"n":10
+		}
+	},
+	"training":{
+		"lr": 0.0001,
+		"weight_decay": 0.0,
+		"show_images_every": 100,
+		"save_model_every":  200,
+		"evaluate_every":    200,
+		"niters": 500000,
+		"device":"cuda",
+		"loss":{
+			"type":"l1"
+		}
+	}
+}
