@@ -7,7 +7,7 @@ from pwise import Piecewise
 def get_single_generator(params):
     # define generator
     gen_type = params['type']
-    elif gen_type == 'filter': return FilterEstimator(params['params'])
+    if gen_type == 'filter': return FilterEstimator(params['params'])
     elif gen_type == 'piecewise':  return Piecewise(params['params'])
     else: raise ValueError('Generator not available.')
 

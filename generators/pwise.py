@@ -9,6 +9,7 @@ class Piecewise(torch.nn.Module):
     def __init__(self, params):
         super(Piecewise,self).__init__()
         self.params = params
+        self.emodule = PiecewiseBasis(params['n'])
         self.c1 = torch.nn.Conv2d(3, 8, kernel_size=5, stride=4, padding=0)
         self.r1 = torch.nn.PReLU(num_parameters=8, init=0.25)
         self.c2 = torch.nn.Conv2d(8, 16, kernel_size=3, stride=2, padding=0)
@@ -21,9 +22,9 @@ class Piecewise(torch.nn.Module):
         self.fc = torch.nn.Sequential(
             torch.nn.Linear(64, 64),
             torch.nn.PReLU(num_parameters=64, init=0.25),
-            torch.nn.Linear(64, enhancement_module.parameters_count)
+            torch.nn.Linear(64, self.emodule.parameters_count)
         )
-        self.emodule = PiecewiseBasis(params['n'])
+
 
     def forward(self, image, applyto=None):
         x = image
@@ -42,6 +43,30 @@ class Piecewise(torch.nn.Module):
         if not self.training:
             result = torch.clamp(result, 0, 1)
         return result
+
+
+class EnhancementModule(torch.nn.Module):
+    def __init__(self, parameters_count):
+        super(EnhancementModule,self).__init__()
+        self.parameters_count = parameters_count
+
+    def forward(self, image, parameters):
+        return image
+
+
+class FunctionBasis(EnhancementModule):
+    def __init__(self, basis_dimension):
+        super(FunctionBasis,self).__init__(basis_dimension * 3)
+        self.bdim = basis_dimension
+
+    def expand(self, x):
+        """Bx3xHxW -> Bx3xDxHxW  where D is the dimension of the basis."""
+        raise NotImplemented
+
+    def forward(self, image, parameters):
+        x = self.expand(image)
+        w = parameters.view(parameters.size(0), 3, -1)
+        return torch.einsum("bcfij,bcf->bcij", (x, w))
 
 
 class PiecewiseBasis(FunctionBasis):
