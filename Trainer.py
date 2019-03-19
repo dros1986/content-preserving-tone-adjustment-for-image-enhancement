@@ -15,8 +15,6 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 import shutil
-# colorspace management
-import ptcolor
 # losses and generators
 from losses import get_loss
 from generators import get_generator, get_generator_name
