@@ -42,6 +42,8 @@ class Trainer(nn.Module):
 		print(self.netG)
 		# move it to device
 		self.netG.to(self.device)
+		# load post processing names
+		self.postproc = torch.load('postprocessing/params.pth')
 		# define output filename
 		self.name = get_generator_name(self.params['generator'])
 		# define dirs
@@ -281,10 +283,20 @@ class Trainer(nn.Module):
 			# regenerate image
 			with torch.no_grad():
 				regen = self.netG(inp).cpu()
+			# apply post-processing
+			regen = self.post_processing(regen)
 			# save images
 			for i in range(len(fn)):
 				cur_fn = os.path.join(self.out_dir,fn[i])
 				transforms.ToPILImage()(torch.clamp(regen[i],0,1)).save(cur_fn)
+
+
+	def post_processing(self,x):
+		x = F.pad(x, [3,3,3,3], mode='reflect')
+		x = F.conv2d(x, self.postproc['filter'], stride=1, padding=0)
+		x = F.conv2d(x, self.postproc['M'], stride=1, padding=0)
+		x = torch.pow(x,self.postproc['gamma'])
+		return x
 
 
 if __name__ == '__main__':
