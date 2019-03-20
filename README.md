@@ -10,4 +10,4 @@
 python Trainer.py --json ./json/enhancement_pwise_blurred_n_10_lr_1e-4_wd_0.0.json --regen
 ```
 
-3 - Run further refinement
+3 - Enhanced images will be in the folder: ./checkpoints/enhancement_pwise_blurred_n_10_lr_1e-4_wd_0.0/regen
