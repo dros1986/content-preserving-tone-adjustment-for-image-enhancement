@@ -2,7 +2,7 @@
 
 ## Inference
 
-1 - Change the directory that must be enhanced in the file: "./json/enhancement\_pwise\_blurred\_n\_10\_lr\_1e-4\_wd\_0.0.json" at the key "dataset -> params -> regen -> input_dir"
+1 - Change the directory that must be enhanced in the file: "./json/enhancement\_pwise\_blurred\_n\_10\_lr\_1e-4\_wd\_0.0.json" at the key "dataset &rightarrow; params &rightarrow; regen &rightarrow; input_dir"
 
 2 - Run the code with the command: 
 
