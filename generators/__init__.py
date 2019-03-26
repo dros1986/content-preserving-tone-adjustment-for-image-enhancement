@@ -1,2 +1,2 @@
-from get_generator import get_generator
-from get_generator import get_generator_name
+from generators.get_generator import get_generator
+from generators.get_generator import get_generator_name

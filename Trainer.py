@@ -284,7 +284,7 @@ class Trainer(nn.Module):
 			with torch.no_grad():
 				regen = self.netG(inp).cpu()
 			# apply post-processing
-			regen = self.post_processing(regen)
+			# regen = self.post_processing(regen)
 			# save images
 			for i in range(len(fn)):
 				cur_fn = os.path.join(self.out_dir,fn[i])

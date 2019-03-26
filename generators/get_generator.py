@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from filter_estimator import FilterEstimator
-from pwise import Piecewise
+from generators.filter_estimator import FilterEstimator
+from generators.pwise import Piecewise
 
 
 def get_single_generator(params):

@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from PlainDataset import PlainDataset
+from datasets.PlainDataset import PlainDataset
 
 
 def get_dataset(params, phase):

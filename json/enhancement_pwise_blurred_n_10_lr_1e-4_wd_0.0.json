@@ -19,7 +19,7 @@
 				"batch_size":9
 			},
 			"regen":{
-				"input_dir":"/home/flavio/datasets/challenge_image_enhancement/test_data_iphone",
+				"input_dir":"/home/flavio/datasets/challenge_image_enhancement/validation_data_iphone",
 				"num_workers":4,
 				"batch_size":1
 			}
