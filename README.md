@@ -13,22 +13,14 @@ python Trainer.py --json ./json/enh_pwise_single_filt_7_wd_0.0.json --regen
 3 - Enhanced images will be in the folder: "_./checkpoints/enh_pwise_single_filt_7_wd_0.0/regen_"
 
 
-<style>
-table{
-  border:none;
-}
-td{
-  padding:0px;
-}
-</style>
 
-<table>
+<table style="border:none;background-color:none">
 <tr>
-<td>Input</td>
-<td>Output</td>
+<td style="padding:0px;">Input</td>
+<td style="padding:0px;">Output</td>
 </tr>
 <tr>
-  <td><img src="https://raw.githubusercontent.com/dros1986/content-preserving-tone-adjustment-for-image-enhancement/master/images/in.jpg" width="430"></td>
-  <td><img src="https://raw.githubusercontent.com/dros1986/content-preserving-tone-adjustment-for-image-enhancement/master/images/in.jpg" width="430"></td>
+  <td style="padding:0px;"><img src="https://raw.githubusercontent.com/dros1986/content-preserving-tone-adjustment-for-image-enhancement/master/images/in.jpg" width="430"></td>
+  <td style="padding:0px;"><img src="https://raw.githubusercontent.com/dros1986/content-preserving-tone-adjustment-for-image-enhancement/master/images/in.jpg" width="430"></td>
 </tr>
 </table>
