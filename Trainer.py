@@ -1,4 +1,4 @@
-import os,sys,math,time,io,argparse,json,traceback
+import os,sys,math,time,io,argparse,json,traceback,collections
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -36,14 +36,12 @@ class Trainer(nn.Module):
 		# set niter to -1
 		self.niter = -1
 		# set attribute for best score
-		self.min_dist = None
+		self.best_psnr = None
 		# create generator
 		self.netG = get_generator(self.params['generator'])
 		print(self.netG)
 		# move it to device
 		self.netG.to(self.device)
-		# load post processing names
-		self.postproc = torch.load('postprocessing/params.pth')
 		# define output filename
 		self.name = get_generator_name(self.params['generator'])
 		# define dirs
@@ -111,7 +109,7 @@ class Trainer(nn.Module):
 		state = {  'netG' : self.netG.state_dict(),
 				 'optimG' : self.optimG.state_dict(),
 				  'niter' : self.niter,
-				 'bestsc' : self.min_dist }
+				   'psnr' : self.best_psnr }
 		# check if loss has state
 		if callable(getattr(self.loss, "get_state", None)):
 			state['loss'] = self.loss.get_state()
@@ -138,7 +136,7 @@ class Trainer(nn.Module):
 			self.netG.load_state_dict(state['netG'])
 			self.optimG.load_state_dict(state['optimG'])
 			self.niter = state['niter']
-			self.min_dist = state['bestsc'] if 'bestsc' in state else None
+			self.best_psnr = state['psnr'] if 'psnr' in state else None
 			# check if loss has state
 			if callable(getattr(self.loss, "get_state", None)):
 				self.loss.set_state(state['loss'])
@@ -153,7 +151,7 @@ class Trainer(nn.Module):
 		self.netG.zero_grad()
 		self.optimG.zero_grad()
 		# get new data
-		inp,gt = self.train_datagen.next()
+		inp,gt = self.train_datagen.__next__()
 		# move to device
 		inp = inp.to(self.device)
 		gt = gt.to(self.device)
@@ -200,20 +198,21 @@ class Trainer(nn.Module):
 					self.save()
 				# validate
 				if self.niter > 0 and self.niter % self.params['training']['evaluate_every'] == 0:
-					cur_dist = self.validate()
-					writer.add_scalar('score', cur_dist, self.niter)
+					cur_psnr = self.validate()
+					writer.add_scalar('psnr', cur_psnr, self.niter)
 
 				# get time
 				elapsed_time = time.time() - start_time
-				# define string
-				s = \
-					( \
-					 cols.BLUE + '[{:07d}/{:07d}]' + \
-					 cols.CYAN  + ' tm: ' + cols.BLUE + '{:.4f}' + \
-					 cols.LIGHT_GRAY + ' G_cost: ' + cols.GREEN + '{:.4f}' + cols.ENDC \
-					).format(self.niter, self.params['training']['niters'], elapsed_time, g_cost)
-				# print it
-				print(s)
+				if self.niter % 20 == 0:
+					# define string
+					s = \
+						( \
+						 cols.BLUE + '[{:07d}/{:07d}]' + \
+						 cols.CYAN  + ' tm: ' + cols.BLUE + '{:.4f}' + \
+						 cols.LIGHT_GRAY + ' G_cost: ' + cols.GREEN + '{:.4f}' + cols.ENDC \
+						).format(self.niter, self.params['training']['niters'], elapsed_time, g_cost)
+					# print it
+					print(s)
 			except OSError as e:
 				print(e)
 				self.train_datagen = self.inf_gen(self.training_data_loader)
@@ -243,23 +242,30 @@ class Trainer(nn.Module):
 			with torch.no_grad():
 				out = self.netG(inp)
 			# compare
-			cur_vals = torch.pow(out-gt,2).mean(-1).mean(-1).mean(-1)
+			mse = torch.pow(out-gt,2).view(out.size(0),-1).mean(1)
+			# mse = torch.pow(out-gt,2).mean(-1).mean(-1).mean(-1)
+			# sobstitute where mse in 0 (to avoid inf)
+			# mse = torch.where(mse==0, torch.tensor([1e-10]).to(mse.device), mse)
+			mse = torch.max(mse,torch.tensor([1e-6]).to(mse.device))
+			# calculate current psnr
+			cur_vals = 10*torch.log10(1./mse)
 			# append
 			vals = cur_vals if vals is None else torch.cat((vals,cur_vals),0)
 		# compute mean val
-		cur_dist = vals.mean().item()
+		cur_psnr_tensor = vals.mean()
+		cur_psnr = cur_psnr_tensor.item()
 		# compare current score
-		if self.min_dist is None or cur_dist < self.min_dist:
+		if self.best_psnr is None or (cur_psnr > self.best_psnr and not torch.isinf(cur_psnr_tensor)):
 			# update best
-			self.min_dist = cur_dist
+			self.best_psnr = cur_psnr
 			# save mode
 			self.save(best=True)
 		# print score
-		print('\n### Current distance: {:.4f} (best: {:.4f}) ###\n'.format(cur_dist,self.min_dist))
+		print('\n### Current PSNR: {:.4f} (best: {:.4f}) ###\n'.format(cur_psnr,self.best_psnr))
 		# set back gen in train mode
 		self.netG.train()
 		# return score
-		return cur_dist
+		return cur_psnr
 
 
 	def regen(self):
@@ -283,20 +289,19 @@ class Trainer(nn.Module):
 			# regenerate image
 			with torch.no_grad():
 				regen = self.netG(inp).cpu()
-			# apply post-processing
-			# regen = self.post_processing(regen)
 			# save images
 			for i in range(len(fn)):
 				cur_fn = os.path.join(self.out_dir,fn[i])
 				transforms.ToPILImage()(torch.clamp(regen[i],0,1)).save(cur_fn)
 
 
-	def post_processing(self,x):
-		x = F.pad(x, [3,3,3,3], mode='reflect')
-		x = F.conv2d(x, self.postproc['filter'], stride=1, padding=0)
-		x = F.conv2d(x, self.postproc['M'], stride=1, padding=0)
-		x = torch.pow(x,self.postproc['gamma'])
-		return x
+def update_dict(d, u):
+	for k, v in u.items():
+		if isinstance(v, collections.Mapping):
+			d[k] = update_dict(d.get(k, {}), v)
+		else:
+			d[k] = v
+	return d
 
 
 if __name__ == '__main__':
@@ -316,7 +321,7 @@ if __name__ == '__main__':
 		if i==0:
 			params = cur_params.copy()
 		else:
-			params.update(cur_params)
+			params = update_dict(params, cur_params)
 	# define expname as json file name
 	exp_name = '_'.join([os.path.splitext(os.path.basename(curj))[0] for curj in args.json])
 	# set exp name in params
