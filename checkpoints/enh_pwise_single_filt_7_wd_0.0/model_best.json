@@ -1,0 +1,57 @@
+{
+    "dataset": {
+        "type": "plain",
+        "params": {
+            "train": {
+                "input_dir": "/home/flavio/datasets/challenge_image_enhancement/training_data/iphone",
+                "gt_dir": "/home/flavio/datasets/challenge_image_enhancement/training_data/canon",
+                "loadsize": 100,
+                "num_workers": 4,
+                "batch_size": 9
+            },
+            "val": {
+                "input_dir": "/home/flavio/datasets/challenge_image_enhancement/validation_data_iphone",
+                "gt_dir": "/home/flavio/datasets/challenge_image_enhancement/validation_data_canon",
+                "loadsize": 100,
+                "num_workers": 4,
+                "batch_size": 9
+            },
+            "regen": {
+                "input_dir": "/home/flavio/datasets/challenge_image_enhancement/validation_data_iphone",
+                "input_dir2": "/home/flavio/datasets/challenge_image_enhancement/test_data_iphone",
+                "num_workers": 4,
+                "batch_size": 1
+            }
+        }
+    },
+    "training": {
+        "lr": 0.0001,
+        "weight_decay": 0.0,
+        "show_images_every": 100,
+        "save_model_every": 200,
+        "evaluate_every": 200,
+        "niters": 500000,
+        "device": "cuda",
+        "loss": {
+            "type": "l1"
+        }
+    },
+    "generator": [
+        {
+            "type": "ntire19",
+            "params": {
+                "type": "pwise",
+                "n": 10
+            }
+        },
+        {
+            "type": "filter",
+            "params": {
+                "filter_type": "single",
+                "size": 7,
+                "sigma": 3
+            }
+        }
+    ],
+    "exp_name": "enh_pwise_single_filt_7_wd_0.0"
+}
